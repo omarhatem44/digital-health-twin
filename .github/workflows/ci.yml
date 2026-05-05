@@ -1,0 +1,72 @@
+name: CI — Digital Health Twin
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Lint + Test ────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest ruff
+
+      - name: Lint (ruff)
+        run: ruff check src/
+
+      - name: Run pipeline + tests
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          python src/pipeline/generate_data.py
+          python src/pipeline/preprocess.py
+          python src/pipeline/feature_engineering.py
+          python src/models/baseline.py
+          python src/models/advanced.py
+          python src/rag/embeddings.py
+          python src/rag/vector_store.py
+          pytest tests/ -v
+
+  # ── Build & Push Docker image ──────────────────────────────
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push
+        env:
+          REGISTRY:   ${{ steps.login-ecr.outputs.registry }}
+          REPO:       digital-health-twin
+          IMAGE_TAG:  ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPO:$IMAGE_TAG .
+          docker push $REGISTRY/$REPO:$IMAGE_TAG
+          echo "IMAGE=$REGISTRY/$REPO:$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster health-twin-cluster \
+            --service health-twin-api \
+            --force-new-deployment

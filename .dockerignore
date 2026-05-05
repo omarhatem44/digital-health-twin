@@ -1,0 +1,52 @@
+# Virtual environment — never include
+venv/
+.venv/
+env/
+
+# Data files — mount as volume at runtime instead
+data/raw/
+data/processed/
+*.csv
+*.pkl
+*.index
+
+# MLflow runs — external storage in production
+mlruns/
+
+# Git and DVC metadata
+.git/
+.dvc/
+.dvcignore
+
+# Environment secrets
+.env
+.env.*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Tests — not needed in production image
+tests/
+
+# Notebooks and docs
+*.ipynb
+*.md
+*.txt
+!requirements.txt
+docs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE configs
+.vscode/
+.idea/
+*.swp
