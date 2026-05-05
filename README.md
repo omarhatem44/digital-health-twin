@@ -738,30 +738,34 @@ docker compose up --build
 $ python src/pipeline/generate_data.py
 Generated 400 records
 high_risk
-0    261
-1    139
+0    248
+1    152
 
 $ python src/models/advanced.py
 XGBoost Results
-  accuracy     0.8875
-  precision    0.8723
-  recall       0.8571
-  roc_auc      0.9312
+   accuracy     0.9125
+  precision    0.8485
+  recall       0.9333
+  roc_auc      0.9800
 
 Top 5 Features:
          feature  importance
-   pulse_pressure      0.2134
-              bmi      0.1723
-              age      0.1489
-          glucose      0.1351
-      systolic_bp      0.1287
+    feature  importance
+     diabetes    0.176750
+      smoking    0.134027
+bmi_age_ratio    0.101718
+ activity_enc    0.094136
+          age    0.080463
 
 $ python src/rag/retriever.py
-P0187  score=0.9341
-Patient P0187: Age 68, Gender M, BMI 34.1, BP 162/99 HR 91 bpm ...
+P0100  score=0.5399
+Patient P0100: Age 20, Gender M, BMI 30.1, BP 116/90, HR 66 bpm, Glucose 106.3, Cholesterol 210.5. Activity: low, Smoker: Yes, Diabetes: No. Notes: History of hypertension, current..
 
-P0312  score=0.9108
-Patient P0312: Age 63, Gender M, BMI 32.8, BP 149/94 HR 87 bpm ...
+P0098  score=0.5378
+Patient P0098: Age 66, Gender M, BMI 21.9, BP 95/69, HR 85 bpm, Glucose 78.3, Cholesterol 202.0. Activity: low, Smoker: No, Diabetes: No. Notes: History of hypertension, currently..
+
+P0074  score=0.5258
+Patient P0074: Age 84, Gender M, BMI 30.6, BP 145/70, HR 80 bpm, Glucose 119.7, Cholesterol 212.2. Activity: moderate, Smoker: No, Diabetes: No. Notes: History of hypertension, cur..
 ```
 
 ### API — `/predict` response
