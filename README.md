@@ -222,17 +222,17 @@ This grounds the LLM response in actual data rather than generating hallucinated
 
 | Model | Accuracy | Precision | Recall | ROC-AUC |
 |-------|----------|-----------|--------|---------|
-| Logistic Regression | ~0.84 | ~0.81 | ~0.79 | ~0.88 |
-| Random Forest | ~0.87 | ~0.85 | ~0.83 | ~0.91 |
+| Logistic Regression | 0.8875 | 0.8000 | 0.9333 | 0.9753 |
+| Random Forest | 0.9000 | 0.8929 | 0.8333 | 0.9617 |
 
-### Advanced model — XGBoost
+### Advanced Model — XGBoost
 
 | Metric | Value |
 |--------|-------|
-| Accuracy | ~0.89 |
-| Precision | ~0.87 |
-| Recall | ~0.86 |
-| ROC-AUC | ~0.93 |
+| Accuracy | 0.9125 |
+| Precision | 0.8485 |
+| Recall | 0.9333 |
+| ROC-AUC | 0.9800 |
 
 XGBoost was selected as the production model because:
 - Handles class imbalance via `scale_pos_weight`
