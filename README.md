@@ -731,6 +731,9 @@ docker compose up --build
 ---
 
 ## 12. Example Outputs
+### Docker Image
+![docker](screenshots/docker.png)
+
 
 ### Terminal — pipeline run
 
