@@ -239,6 +239,8 @@ XGBoost was selected as the production model because:
 - Built-in feature importance for explainability
 - Early stopping prevents overfitting
 - Faster inference than ensemble of trees
+![result](screenshots/reult.png)
+![MLflow Screenshot](screenshots/Mlflow.png)
 
 ### Top 5 features by importance
 
@@ -290,6 +292,8 @@ Predicts cardiovascular health risk for a patient and returns a full clinical in
   "notes": "Complaints of fatigue and chest tightness."
 }
 ```
+![predict](screenshots/predict.png)
+
 
 **Response:**
 
@@ -357,6 +361,7 @@ Answers a free-text clinical question about a specific patient using RAG + LLM.
   "retrieved_context": [ "..." ]
 }
 ```
+![ask](screenshots/ask.png)
 
 ---
 
