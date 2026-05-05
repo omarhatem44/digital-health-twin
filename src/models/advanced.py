@@ -1,4 +1,8 @@
-import pandas as pd, numpy as np, pickle, json, sys, os
+import pandas as pd
+import numpy as np
+import pickle
+import sys
+import os
 sys.path.append('.')
 import xgboost as xgb
 from sklearn.model_selection import train_test_split, StratifiedKFold
@@ -33,7 +37,8 @@ def train_xgboost(df):
         'roc_auc':   float(roc_auc_score(y_te,prob))
     }
     print("\nXGBoost Results")
-    for k,v in metrics.items(): print(f"  {k:<12} {v:.4f}")
+    for k,v in metrics.items():
+        print(f"  {k:<12} {v:.4f}")
 
     # Feature importance
     fi = pd.DataFrame({'feature':X.columns,

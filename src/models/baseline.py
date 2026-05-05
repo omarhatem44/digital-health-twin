@@ -1,4 +1,8 @@
-import pandas as pd, numpy as np, pickle, sys, os
+import pandas as pd
+import numpy as np
+import pickle
+import sys
+import os
 sys.path.append('.')
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier

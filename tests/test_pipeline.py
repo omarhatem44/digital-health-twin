@@ -1,6 +1,7 @@
 # tests/test_pipeline.py
-import pandas as pd, pickle, numpy as np
-
+import pandas as pd
+import numpy as np
+import pickle
 def test_raw_data_exists():
     df = pd.read_csv("data/raw/patients.csv")
     assert len(df) == 400
