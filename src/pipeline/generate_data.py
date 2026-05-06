@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-import random, os
+import random
+import os
 
 def generate_patient_data(n=400, seed=42):
     np.random.seed(seed); random.seed(seed)

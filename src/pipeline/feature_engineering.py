@@ -1,7 +1,7 @@
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import StandardScaler
-import pickle, os
+import pickle
+import os
 
 FEATURES = [
     'age','bmi','systolic_bp','diastolic_bp','heart_rate',

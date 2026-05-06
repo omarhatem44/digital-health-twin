@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import pickle
 import sys
 import os
@@ -34,7 +33,8 @@ def train_baseline(df):
         }
         print(f"\n{name}")
         for k,v in results[name].items():
-            if k!='model': print(f"  {k:<12} {v:.4f}")
+            if k!='model':
+                print(f"  {k:<12} {v:.4f}")
 
     # Save best model (RF usually wins on tabular data)
     os.makedirs("data/processed",exist_ok=True)

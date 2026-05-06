@@ -2,10 +2,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import pandas as pd
-import numpy as np
 import pickle
 import sys
-import os
 sys.path.append('.')
 from src.pipeline.feature_engineering import engineer_features, FEATURES
 from src.rag.retriever import HealthRAGRetriever
