@@ -1,4 +1,6 @@
-import faiss, numpy as np, pickle
+import faiss
+import numpy as np
+import pickle
 from sentence_transformers import SentenceTransformer
 
 class HealthRAGRetriever:

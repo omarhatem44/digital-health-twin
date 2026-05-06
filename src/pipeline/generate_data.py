@@ -4,7 +4,8 @@ import random
 import os
 
 def generate_patient_data(n=400, seed=42):
-    np.random.seed(seed); random.seed(seed)
+    np.random.seed(seed) 
+    random.seed(seed)
     pid = [f"P{str(i).zfill(4)}" for i in range(1,n+1)]
     ages = np.random.randint(20,85,n)
     genders = np.random.choice(['M','F'],n)

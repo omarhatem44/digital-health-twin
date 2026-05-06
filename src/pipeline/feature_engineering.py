@@ -28,9 +28,11 @@ def scale_features(df, fit=True,
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
         os.makedirs("data/processed", exist_ok=True)
-        with open(scaler_path,'wb') as f: pickle.dump(scaler, f)
+        with open(scaler_path,'wb') as f: 
+            pickle.dump(scaler, f)
     else:
-        with open(scaler_path,'rb') as f: scaler = pickle.load(f)
+        with open(scaler_path,'rb') as f: 
+            scaler = pickle.load(f)
         X_scaled = scaler.transform(X)
 
     return pd.DataFrame(X_scaled, columns=FEATURES), df['high_risk']

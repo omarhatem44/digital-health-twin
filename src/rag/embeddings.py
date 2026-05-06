@@ -1,7 +1,7 @@
 import pandas as pd
 import pickle
-import sys
-import osfrom sentence_transformers import SentenceTransformer
+import os
+from sentence_transformers import SentenceTransformer
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 
@@ -37,7 +37,8 @@ def embed_documents(docs: list,
     payload = {'docs':docs,'embeddings':embeddings,
                'model_name':MODEL_NAME}
     os.makedirs("data/processed",exist_ok=True)
-    with open(save_path,'wb') as f: pickle.dump(payload,f)
+    with open(save_path,'wb') as f:
+        pickle.dump(payload,f)
     print(f"Embedded {len(docs)} docs  shape={embeddings.shape}")
     return payload
 

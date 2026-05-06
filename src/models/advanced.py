@@ -4,10 +4,11 @@ import sys
 import os
 sys.path.append('.')
 import xgboost as xgb
-from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import (accuracy_score, precision_score,
                               recall_score, roc_auc_score)
 from src.pipeline.feature_engineering import scale_features
+import json
 
 def train_xgboost(df):
     X, y = scale_features(df, fit=False)

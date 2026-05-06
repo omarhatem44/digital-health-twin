@@ -1,8 +1,11 @@
-import faiss, numpy as np, pickle
+import faiss
+import numpy as np
+import pickle
 
 def build_index(emb_path="data/processed/embeddings.pkl",
                 idx_path="data/processed/faiss.index"):
-    with open(emb_path,'rb') as f: data = pickle.load(f)
+    with open(emb_path,'rb') as f:
+        data = pickle.load(f)
 
     embs = data['embeddings'].astype(np.float32)
     # Normalize → inner product == cosine similarity
