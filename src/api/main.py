@@ -9,7 +9,6 @@ from typing import Optional
 import pandas as pd
 import pickle
 import sys
-import os
 from pathlib import Path
 
 # =========================================================
@@ -22,6 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 sys.path.insert(0, str(BASE_DIR))
 
+# ruff: noqa: E402
 from src.pipeline.feature_engineering import engineer_features, FEATURES
 from src.rag.retriever import HealthRAGRetriever
 from src.insights.explainer import InsightGenerator
