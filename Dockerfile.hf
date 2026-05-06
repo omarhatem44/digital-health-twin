@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+RUN useradd -m -u 1000 appuser
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY params.yaml .
+COPY dvc.yaml .
+
+RUN python src/pipeline/generate_data.py \
+    && python src/pipeline/preprocess.py \
+    && python src/pipeline/feature_engineering.py \
+    && python src/models/advanced.py \
+    && python src/rag/embeddings.py \
+    && python src/rag/vector_store.py
+
+RUN chown -R appuser /app
+USER appuser
+
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
+
+EXPOSE 7860
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "7860"]
