@@ -21,6 +21,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 sys.path.insert(0, str(BASE_DIR))
+# noqa: E402
 
 from src.pipeline.feature_engineering import engineer_features, FEATURES
 from src.rag.retriever import HealthRAGRetriever
