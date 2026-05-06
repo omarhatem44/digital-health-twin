@@ -118,7 +118,7 @@ jobs:
           username:        ${{ secrets.EC2_USER }}
           key:             ${{ secrets.EC2_SSH_KEY }}
           envs:            ECR_PASSWORD,REGISTRY,ECR_REPO
-          command_timeout: 120m        # ← الـ fix الرئيسي
+          command_timeout: 180m        # ← الـ fix الرئيسي
           script: |
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $REGISTRY
             docker pull $REGISTRY/$ECR_REPO:latest
