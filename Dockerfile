@@ -3,7 +3,11 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /build
 COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# install only what's needed, no cache, no docs
+RUN pip install --no-cache-dir --prefix=/install \
+      --no-compile \
+      -r requirements.txt
 
 
 # ── Stage 2: lean runtime image ──────────────────────────────
@@ -11,19 +15,15 @@ FROM python:3.11-slim AS runtime
 
 WORKDIR /app
 
-# install curl for HEALTHCHECK (not present in slim by default)
+# curl for HEALTHCHECK only — remove build tools after
 RUN apt-get update \
  && apt-get install -y --no-install-recommends curl \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# copy project — structure inside container mirrors repo root:
-#   /app/src/api/main.py
-#   /app/model/xgb_model.pkl
-#   /app/model/scaler.pkl
-#   /app/templates/index.html
+# copy only what the app needs (skip data/, mlartifacts/, screenshots/, tests/, etc.)
 COPY src/        ./src/
 COPY model/      ./model/
 COPY templates/  ./templates/

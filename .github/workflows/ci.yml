@@ -88,7 +88,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 45          # ← زدناها عشان تغطي الـ pull الطويل
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -114,10 +114,11 @@ jobs:
       - name: Pull latest images
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          envs:     ECR_PASSWORD,REGISTRY,ECR_REPO
+          host:            ${{ secrets.EC2_HOST }}
+          username:        ${{ secrets.EC2_USER }}
+          key:             ${{ secrets.EC2_SSH_KEY }}
+          envs:            ECR_PASSWORD,REGISTRY,ECR_REPO
+          command_timeout: 30m        # ← الـ fix الرئيسي
           script: |
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $REGISTRY
             docker pull $REGISTRY/$ECR_REPO:latest
@@ -129,10 +130,11 @@ jobs:
       - name: Run Docker Image to serve users
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          envs:     REGISTRY,ECR_REPO,GROQ_API_KEY
+          host:            ${{ secrets.EC2_HOST }}
+          username:        ${{ secrets.EC2_USER }}
+          key:             ${{ secrets.EC2_SSH_KEY }}
+          envs:            REGISTRY,ECR_REPO,GROQ_API_KEY
+          command_timeout: 5m
           script: |
             docker stop health-twin-api || true
             docker rm   health-twin-api || true
@@ -150,9 +152,10 @@ jobs:
       - name: Clean previous images and containers
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
+          host:            ${{ secrets.EC2_HOST }}
+          username:        ${{ secrets.EC2_USER }}
+          key:             ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 5m
           script: |
             docker image prune -f
             docker container prune -f
