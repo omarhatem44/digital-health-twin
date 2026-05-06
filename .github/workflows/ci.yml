@@ -83,3 +83,61 @@ jobs:
           docker tag $IMAGE_URI $REGISTRY/${{ env.ECR_REPO }}:latest
           docker push $IMAGE_URI
           docker push $REGISTRY/${{ env.ECR_REPO }}:latest
+  # ── 3. Continuous Deployment to EC2 ───────────────────────
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Pull latest images
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            aws ecr get-login-password --region ${{ env.AWS_REGION }} \
+              | docker login --username AWS --password-stdin \
+                ${{ steps.login-ecr.outputs.registry }}
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+
+      - name: Run Docker Image to serve users
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop health-twin-api || true
+            docker rm   health-twin-api || true
+            docker run -d \
+              --name health-twin-api \
+              --restart unless-stopped \
+              -p 8000:8000 \
+              -e GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
+              ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+
+      - name: Clean previous images and containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key:      ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker image prune -f
+            docker container prune -f
