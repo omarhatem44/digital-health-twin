@@ -1,29 +1,44 @@
 # ── Stage 1: build dependencies ───────────────────────────────
 FROM python:3.11-slim AS builder
+
 WORKDIR /build
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
+
 # ── Stage 2: lean runtime image ──────────────────────────────
 FROM python:3.11-slim AS runtime
+
 WORKDIR /app
 
-# ✅ إضافة curl عشان الـ HEALTHCHECK يشتغل
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+# install curl for HEALTHCHECK (not present in slim by default)
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
  && rm -rf /var/lib/apt/lists/*
 
+# copy installed packages from builder
 COPY --from=builder /install /usr/local
-COPY . .
 
-# Non-root user for security
+# copy project — structure inside container mirrors repo root:
+#   /app/src/api/main.py
+#   /app/model/xgb_model.pkl
+#   /app/model/scaler.pkl
+#   /app/templates/index.html
+COPY src/        ./src/
+COPY model/      ./model/
+COPY templates/  ./templates/
+
+# non-root user for security
 RUN adduser --disabled-password --gecos "" appuser \
  && chown -R appuser /app
 USER appuser
 
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-CMD ["uvicorn","src.api.main:app","--host","0.0.0.0","--port","8000","--workers","2"]
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

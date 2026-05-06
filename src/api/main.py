@@ -11,41 +11,36 @@ import pickle
 import sys
 from pathlib import Path
 
+
 # =========================================================
-# PATHS — Docker-compatible (WORKDIR = /app)
+# PATHS
+# src/api/main.py → parent = src/api → parent = src → parent = project root
+# Docker WORKDIR /app → BASE_DIR = /app  ✅
 # =========================================================
 
-# في Docker: __file__ = /app/src/api/main.py  →  BASE_DIR = /app
-# محلياً:    __file__ = ./src/api/main.py     →  BASE_DIR = .
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 sys.path.insert(0, str(BASE_DIR))
 
-# ruff: noqa: E402
 from src.pipeline.feature_engineering import engineer_features, FEATURES
 from src.rag.retriever import HealthRAGRetriever
 from src.insights.explainer import InsightGenerator
 
 
-MODEL_PATH     = BASE_DIR / "model" / "xgb_model.pkl"
-SCALER_PATH    = BASE_DIR / "model" / "scaler.pkl"
-TEMPLATES_DIR  = BASE_DIR / "templates"
+MODEL_PATH    = BASE_DIR / "model" / "xgb_model.pkl"
+SCALER_PATH   = BASE_DIR / "model" / "scaler.pkl"
+TEMPLATES_DIR = BASE_DIR / "templates"
 
 
 # =========================================================
-# FASTAPI APP
+# APP
 # =========================================================
 
 app = FastAPI(
     title="Digital Health Twin API",
     description="AI-powered health risk prediction + clinical reasoning",
-    version="1.0.0"
+    version="1.0.0",
 )
-
-
-# =========================================================
-# CORS
-# =========================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -55,16 +50,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# =========================================================
-# TEMPLATES
-# =========================================================
-
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 # =========================================================
-# LOAD MODELS  (عند startup مش عند كل request)
+# LOAD ARTIFACTS AT STARTUP
 # =========================================================
 
 with open(MODEL_PATH, "rb") as f:
@@ -109,19 +99,19 @@ class AskRequest(BaseModel):
 
 def patient_to_array(p: Patient):
     row = {
-        'age':          p.age,
-        'bmi':          p.bmi,
-        'systolic_bp':  p.systolic_bp,
-        'diastolic_bp': p.diastolic_bp,
-        'heart_rate':   p.heart_rate,
-        'glucose':      p.glucose,
-        'cholesterol':  p.cholesterol,
-        'gender_enc':   1 if p.gender.upper() == "M" else 0,
-        'activity_enc': {'low': 0, 'moderate': 1, 'high': 2}.get(
+        "age":          p.age,
+        "bmi":          p.bmi,
+        "systolic_bp":  p.systolic_bp,
+        "diastolic_bp": p.diastolic_bp,
+        "heart_rate":   p.heart_rate,
+        "glucose":      p.glucose,
+        "cholesterol":  p.cholesterol,
+        "gender_enc":   1 if p.gender.upper() == "M" else 0,
+        "activity_enc": {"low": 0, "moderate": 1, "high": 2}.get(
             p.activity_level.lower(), 1
         ),
-        'smoking':  p.smoking,
-        'diabetes': p.diabetes,
+        "smoking":  p.smoking,
+        "diabetes": p.diabetes,
     }
 
     df = engineer_features(pd.DataFrame([row]))
@@ -140,10 +130,7 @@ async def frontend(request: Request):
 
 @app.get("/health")
 def health():
-    return {
-        "status":  "healthy",
-        "service": "Digital Health Twin API"
-    }
+    return {"status": "healthy", "service": "Digital Health Twin API"}
 
 
 @app.post("/predict")
@@ -162,8 +149,8 @@ def predict(patient: Patient):
         ctx     = RETRIEVER.retrieve(query, top_k=3)
         insight = INSIGHT.generate_insight(
             patient.model_dump(),
-            {'prediction': pred, 'confidence': conf},
-            ctx
+            {"prediction": pred, "confidence": conf},
+            ctx,
         )
 
         return {
@@ -193,7 +180,7 @@ def ask(req: AskRequest):
         answer = INSIGHT.answer_question(
             req.question,
             req.patient_data.model_dump(),
-            ctx
+            ctx,
         )
 
         return {
@@ -215,16 +202,14 @@ def ask(req: AskRequest):
 
 
 # =========================================================
-# ENTRYPOINT — للشغل المحلي فقط
-# Docker بيستخدم CMD في الـ Dockerfile مباشرة
+# LOCAL DEV ONLY — Docker uses CMD in Dockerfile
 # =========================================================
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(
         "src.api.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=True,
     )
