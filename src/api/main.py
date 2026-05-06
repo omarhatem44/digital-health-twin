@@ -16,9 +16,9 @@ app = FastAPI(
 )
 
 # ── Load artifacts once at startup ────────────────────────────
-with open("data/processed/xgb_model.pkl","rb") as f:
+with open("models/xgb_model.pkl","rb") as f:
     MODEL = pickle.load(f)
-with open("data/processed/scaler.pkl","rb") as f:
+with open("models/scaler.pkl","rb") as f:
     SCALER = pickle.load(f)
 
 RETRIEVER = HealthRAGRetriever()
