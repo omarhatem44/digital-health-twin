@@ -15,14 +15,14 @@ from pathlib import Path
 # =========================================================
 # PATHS
 # src/api/main.py → parent = src/api → parent = src → parent = project root
-# Docker WORKDIR /app → BASE_DIR = /app  ✅
+# Docker WORKDIR /app → BASE_DIR = /app
 # =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 sys.path.insert(0, str(BASE_DIR))
-# noqa: E402
 
+# ruff: noqa: E402
 from src.pipeline.feature_engineering import engineer_features, FEATURES
 from src.rag.retriever import HealthRAGRetriever
 from src.insights.explainer import InsightGenerator
@@ -208,6 +208,7 @@ def ask(req: AskRequest):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "src.api.main:app",
         host="0.0.0.0",
