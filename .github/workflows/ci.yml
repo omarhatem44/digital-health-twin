@@ -60,9 +60,6 @@ jobs:
     timeout-minutes: 20
     if: github.ref == 'refs/heads/main'
 
-    outputs:
-      registry: ${{ steps.login-ecr.outputs.registry }}
-
     steps:
       - uses: actions/checkout@v4
 
@@ -108,17 +105,26 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      # ✅ الـ fix: بنجيب الـ ECR password على الـ runner مش على الـ EC2
+      - name: Get ECR login password
+        id: ecr-password
+        run: |
+          echo "password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})" >> $GITHUB_OUTPUT
+
       - name: Pull latest images
         uses: appleboy/ssh-action@v1.0.3
         with:
           host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_SSH_KEY }}
+          envs:     ECR_PASSWORD,REGISTRY,ECR_REPO
           script: |
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} \
-              | docker login --username AWS --password-stdin \
-                ${{ steps.login-ecr.outputs.registry }}
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin $REGISTRY
+            docker pull $REGISTRY/$ECR_REPO:latest
+        env:
+          ECR_PASSWORD: ${{ steps.ecr-password.outputs.password }}
+          REGISTRY:     ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO:     ${{ env.ECR_REPO }}
 
       - name: Run Docker Image to serve users
         uses: appleboy/ssh-action@v1.0.3
@@ -126,6 +132,7 @@ jobs:
           host:     ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key:      ${{ secrets.EC2_SSH_KEY }}
+          envs:     REGISTRY,ECR_REPO,GROQ_API_KEY
           script: |
             docker stop health-twin-api || true
             docker rm   health-twin-api || true
@@ -133,8 +140,12 @@ jobs:
               --name health-twin-api \
               --restart unless-stopped \
               -p 8000:8000 \
-              -e GROQ_API_KEY=${{ secrets.GROQ_API_KEY }} \
-              ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}:latest
+              -e GROQ_API_KEY=$GROQ_API_KEY \
+              $REGISTRY/$ECR_REPO:latest
+        env:
+          REGISTRY:     ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO:     ${{ env.ECR_REPO }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
 
       - name: Clean previous images and containers
         uses: appleboy/ssh-action@v1.0.3
