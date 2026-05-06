@@ -7,11 +7,8 @@ on:
     branches: [main]
 
 env:
-  AWS_REGION:       us-east-1
-  ECR_REPO:         digital-health-twin
-  ECS_CLUSTER:      health-twin-cluster
-  ECS_SERVICE:      health-twin-api
-  CONTAINER_NAME:   health-twin-api        # must match name in your task definition
+  AWS_REGION: us-east-1
+  ECR_REPO:   digital-health-twin
 
 jobs:
   # ── 1. Lint + Test ─────────────────────────────────────────
@@ -26,7 +23,6 @@ jobs:
         with:
           python-version: "3.11"
 
-      # cache pip so repeat runs are fast
       - name: Cache pip
         uses: actions/cache@v4
         with:
@@ -64,9 +60,6 @@ jobs:
     timeout-minutes: 20
     if: github.ref == 'refs/heads/main'
 
-    outputs:
-      image: ${{ steps.build-push.outputs.image }}   # pass full image URI to deploy job
-
     steps:
       - uses: actions/checkout@v4
 
@@ -82,63 +75,11 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push image
-        id: build-push
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           IMAGE_URI=$REGISTRY/${{ env.ECR_REPO }}:${{ github.sha }}
-
           docker build -t $IMAGE_URI .
-
-          # also tag as latest so you can always pull the freshest build
           docker tag $IMAGE_URI $REGISTRY/${{ env.ECR_REPO }}:latest
-
           docker push $IMAGE_URI
           docker push $REGISTRY/${{ env.ECR_REPO }}:latest
-
-          # expose the versioned URI to the deploy job
-          echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
-
-  # ── 3. Deploy to ECS ───────────────────────────────────────
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region:            ${{ env.AWS_REGION }}
-
-      # 1. pull the CURRENT task definition from AWS
-      - name: Download current task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_SERVICE }} \
-            --query taskDefinition \
-            > task-definition.json
-
-      # 2. inject the NEW image URI into the task definition JSON
-      #    (this is the step that was missing — without it ECS keeps the old image)
-      - name: Render new task definition with updated image
-        id: render-task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition:  task-definition.json
-          container-name:   ${{ env.CONTAINER_NAME }}
-          image:            ${{ needs.build.outputs.image }}
-
-      # 3. register the new task definition revision and update the service
-      - name: Deploy to ECS service
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition:  ${{ steps.render-task-def.outputs.task-definition }}
-          service:          ${{ env.ECS_SERVICE }}
-          cluster:          ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true   # block until deployment is healthy
