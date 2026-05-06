@@ -226,5 +226,6 @@ mlruns/
 __pycache__/
 *.pyc
 *.pkl
+!models/
 *.index
 EOF
