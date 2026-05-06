@@ -20,7 +20,7 @@ def test_scaler_loads():
 def test_model_loads_and_predicts():
     with open("data/processed/xgb_model.pkl","rb") as f:
         model = pickle.load(f)
-    dummy = np.zeros((1, 13))
+    dummy = np.zeros((1, 14))
     pred = model.predict(dummy)
     assert pred[0] in [0, 1]
 
