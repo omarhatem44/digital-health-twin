@@ -60,6 +60,9 @@ jobs:
     timeout-minutes: 20
     if: github.ref == 'refs/heads/main'
 
+    outputs:
+      registry: ${{ steps.login-ecr.outputs.registry }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -70,7 +73,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -83,7 +86,8 @@ jobs:
           docker tag $IMAGE_URI $REGISTRY/${{ env.ECR_REPO }}:latest
           docker push $IMAGE_URI
           docker push $REGISTRY/${{ env.ECR_REPO }}:latest
-  # ── 3. Continuous Deployment to EC2 ───────────────────────
+
+  # ── 3. Continuous Deployment to EC2 ────────────────────────
   deploy:
     needs: build
     runs-on: ubuntu-latest
