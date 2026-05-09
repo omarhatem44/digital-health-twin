@@ -8,6 +8,9 @@
 
 ---
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Hugging_Face_Spaces-FF9D00?style=flat&logo=huggingface&logoColor=white)](https://omarhatem33-digital-health-twin2.hf.space/)
+[![Space Status](https://img.shields.io/badge/Status-Running-1D9E75?style=flat&logo=statuspage&logoColor=white)](https://huggingface.co/spaces/omarhatem33/Digital-Health-Twin2)
+
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?style=flat&logo=fastapi&logoColor=white)
 ![XGBoost](https://img.shields.io/badge/XGBoost-2.0-FF6600?style=flat&logo=xgboost&logoColor=white)
@@ -16,7 +19,7 @@
 ![DVC](https://img.shields.io/badge/DVC-3.x-945DD6?style=flat&logo=dvc&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Multi--Stage-2496ED?style=flat&logo=docker&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-ECS_Fargate-FF9900?style=flat&logo=amazonaws&logoColor=white)
+![HF Spaces](https://img.shields.io/badge/Deployed-HF_Spaces-FFD21E?style=flat&logo=huggingface&logoColor=black)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
 </div>
@@ -33,6 +36,8 @@ The Digital Health Twin is a production-grade AI system that mirrors a patient's
 4. **Serves** everything through a production-ready FastAPI with Pydantic validation, Docker containerisation, and a full MLOps pipeline
 
 The project is structured as **seven progressive parts** — from data generation and feature engineering through model training, RAG system design, API development, and finally MLOps deployment strategy with monitoring and automated retraining.
+
+> **Live deployment:** [https://omarhatem33-digital-health-twin2.hf.space/](https://omarhatem33-digital-health-twin2.hf.space/) — running on Hugging Face Spaces (Docker runtime)
 
 ---
 
@@ -64,6 +69,7 @@ The project is structured as **seven progressive parts** — from data generatio
 
 
 ![Model Results](screenshots/DataFlow.png)
+
 
 
 ---
@@ -134,6 +140,7 @@ The entire data pipeline is fully reproducible and tracked with **DVC**. Running
 ![Model Results](screenshots/DVC.png)
 
 ---
+
 **Stage definitions:**
 
 | Stage | Command | Key Output |
@@ -223,6 +230,7 @@ The Retrieval-Augmented Generation system adds clinical grounding to every predi
 ![Model Results](screenshots/RAG.png)
 
 ---
+
 ### Embedding Model Choice
 
 `all-MiniLM-L6-v2` was selected for:
