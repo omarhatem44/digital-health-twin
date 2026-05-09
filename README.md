@@ -56,56 +56,15 @@ The project is structured as **seven progressive parts** — from data generatio
 
 ## 1. Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        CLIENT / CLINICIAN                           │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │  HTTP POST
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                         FastAPI  (:8000)                            │
-│                                                                     │
-│   POST /predict                        POST /ask                    │
-│   ─────────────────────────────        ──────────────────────────── │
-│   1. Validate input (Pydantic)         1. Validate input            │
-│   2. Feature engineering               2. RAG retrieval             │
-│   3. XGBoost prediction                3. LLM Q&A generation        │
-│   4. RAG retrieval                     4. Return answer + context   │
-│   5. LLM insight generation                                         │
-│   6. Return full JSON response                                      │
-└────────┬──────────────┬───────────────────────────────────────────┘
-         │              │
-         ▼              ▼
-┌──────────────┐  ┌─────────────────────────────────────────────────┐
-│  XGBoost     │  │              RAG Pipeline                        │
-│  Model       │  │                                                  │
-│  (.pkl)      │  │  Query ──► Sentence Transformer (MiniLM-L6-v2)  │
-│              │  │            ──► FAISS IndexFlatIP                 │
-│  StandardS-  │  │            ──► Top-K patient docs returned       │
-│  caler (.pkl)│  └──────────────────────┬────────────────────────  ┘
-└──────────────┘                         │
-                                         ▼
-                         ┌───────────────────────────────┐
-                         │   Insight Generator (LLM)     │
-                         │                               │
-                         │  Prompt = patient data        │
-                         │         + ML prediction       │
-                         │         + RAG context         │
-                         │                               │
-                         │  Model: LLaMA 3.3 70B (Groq) │
-                         │  Output: clinical insight     │
-                         └───────────────────────────────┘
-```
+![Model Results](screenshots/Archi.png)
+
+---
 
 ### Data Flow Summary
 
-```
-Raw CSV ──► Preprocess ──► Feature Engineering
-       ──► XGBoost Train         ──► model.pkl + scaler.pkl
-       ──► Embed Docs (MiniLM)   ──► FAISS index
-       ──► FastAPI loads all artifacts at startup
-       ──► Request arrives → predict → retrieve → explain → respond
-```
+
+![Model Results](screenshots/DataFlow.png)
+
 
 ---
 
@@ -172,14 +131,9 @@ The entire data pipeline is fully reproducible and tracked with **DVC**. Running
 
 ### DVC Pipeline (`dvc.yaml`)
 
-```
-generate_data.py       preprocess.py       feature_engineering.py    advanced.py
-      │                     │                       │                     │
-      ▼                     ▼                       ▼                     ▼
-patients.csv  ──►  patients_processed.csv  ──►  scaler.pkl  ──►  xgb_model.pkl
-                                                                  metrics.json
-```
+![Model Results](screenshots/DVC.png)
 
+---
 **Stage definitions:**
 
 | Stage | Command | Key Output |
@@ -266,32 +220,9 @@ The Retrieval-Augmented Generation system adds clinical grounding to every predi
 
 ### Architecture
 
-```
-Patient record
-     │
-     ▼
-Build document string
-─────────────────────────────────────────────────────────────────
-"Patient P0042: Age 67, Gender M, BMI 34.2, BP 158/98,
- HR 88 bpm, Glucose 145.3, Cholesterol 228.7.
- Activity: low, Smoker: Yes, Diabetes: No.
- Notes: Complaints of fatigue and chest tightness.
- Risk classification: HIGH."
-─────────────────────────────────────────────────────────────────
-     │
-     ▼
-SentenceTransformer("all-MiniLM-L6-v2")
-     │  → 384-dimensional dense vector
-     ▼
-L2-normalise  →  FAISS IndexFlatIP  →  cosine similarity search
-     │
-     ▼
-Top-3 similar patients returned with similarity scores
-     │
-     ▼
-Injected as structured context into the LLM prompt
-```
+![Model Results](screenshots/RAG.png)
 
+---
 ### Embedding Model Choice
 
 `all-MiniLM-L6-v2` was selected for:
